@@ -1,0 +1,42 @@
+
+ARGUMENT_LIST=(
+    "update-packages"
+    "upgrade-packages"
+    "install_base_packages"
+)
+
+
+# read arguments
+opts=$(getopt \
+    --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
+    --name "$(basename "$0")" \
+    --options "" \
+    -- "$@"
+)
+
+eval set --$opts
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --update-packages)
+            update_packages=true
+            shift
+            ;;
+
+        --upgrade-packages)
+            #argTwo=$2
+            upgrade_packages=true
+            shift
+            ;;
+
+        --install_base_packages)
+            install_base_packages=true
+            #argThree=$2
+            shift
+            ;;
+
+        *)
+            break
+            ;;
+    esac
+done

@@ -1,0 +1,105 @@
+sudo apt install qemu libvirt-daemon-system libvirt-clients libxslt-dev libxml2-dev libvirt-dev zlib1g-dev ruby-dev ruby-libvirt ebtables dnsmasq-base
+
+vagrant plugin install vagrant-libvirt
+vagrant plugin install vagrant-mutate
+export VAGRANT_DEFAULT_PROVIDER=libvirt
+or
+vagrant up --provider=libvirt
+
+
+
+
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "hansode/centos-6.5-x86_64"
+
+  provisioner = Vagrant::Util::Platform.windows? ? :guest_ansible : :ansible
+
+  config.vm.define "web" do |web|
+    web.vm.network :private_network, ip: "192.168.33.13"
+    web.vm.hostname = "web"
+    web.vm.provision provisioner do |ansible|
+      ansible.playbook = "provisioning/playbook.yml"
+    end
+  end
+
+  config.vm.define "db" do |db|
+    db.vm.network :private_network, ip: "192.168.33.14"
+    db.vm.hostname = "db"
+    db.vm.provision provisioner do |ansible|
+      ansible.playbook = "provisioning/playbook.yml"
+    end
+  end
+
+end
+
+
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "hansode/centos-6.5-x86_64"
+
+  config.vm.define "web" do |web|
+    web.vm.network :private_network, ip: "192.168.33.13"
+    web.vm.hostname = "web"
+    web.vm.synced_folder ".", "/vagrant", disabled: true
+  end
+
+  config.vm.define "db" do |db|
+    db.vm.network :private_network, ip: "192.168.33.14"
+    db.vm.hostname = "db"
+    db.vm.synced_folder ".", "/vagrant", disabled: true
+  end
+
+  #
+  # this is our ansible controller VM which provisions the other VMs
+  #
+  config.vm.define "controller" do |controller|
+    controller.vm.network :private_network, ip: "192.168.33.15"
+    controller.vm.hostname = "controller"
+    # install ansible
+    controller.vm.provision "shell", privileged: false, path: "install_ansible.sh"
+    # run ansible
+    controller.vm.provision "shell", privileged: false, inline: <<-EOF
+      if [ ! -f /home/vagrant/.ssh/id_rsa ]; then
+        wget --no-check-certificate https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant -O /home/vagrant/.ssh/id_rsa
+        wget --no-check-certificate https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub -O /home/vagrant/.ssh/id_rsa.pub
+        chmod 600 /home/vagrant/.ssh/id_*
+      fi
+      rm -rf /tmp/provisioning
+      cp -r /vagrant/provisioning /tmp/provisioning
+      cd /tmp/provisioning
+      chmod -x hosts
+      export ANSIBLE_HOST_KEY_CHECKING=False
+      ansible-playbook playbook.yml --inventory-file=hosts
+    EOF
+  end
+
+end
+
+
+
+
+#!/bin/bash
+
+if ! command -v ansible >/dev/null; then
+        echo "Installing Ansible dependencies and Git."
+        if command -v yum >/dev/null; then
+                sudo yum install -y git python python-devel
+        elif command -v apt-get >/dev/null; then
+                sudo apt-get update -qq
+                #sudo apt-get install -y -qq git python-yaml python-paramiko python-jinja2
+                sudo apt-get install -y -qq git python python-dev
+        else
+                echo "neither yum nor apt-get found!"
+                exit 1
+        fi
+        echo "Installing pip via easy_install."
+        wget http://peak.telecommunity.com/dist/ez_setup.py
+        sudo python ez_setup.py && rm -f ez_setup.py
+        sudo easy_install pip
+        # Make sure setuptools are installed crrectly.
+        sudo pip install setuptools --no-use-wheel --upgrade
+        echo "Installing required python modules."
+        sudo pip install paramiko pyyaml jinja2 markupsafe
+        sudo pip install ansible
+fi

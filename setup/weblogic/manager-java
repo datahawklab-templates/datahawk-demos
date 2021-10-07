@@ -1,0 +1,55 @@
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 ; \
+export PATH=${JAVA_HOME}/bin:${PATH} ; \
+java --version && \
+export MVN_VERSION="3.6.3" ;\
+export M2_HOME=${HOME}/usr/local/bin/m2_${MVN_VERSION}_openjdk11 ;\
+mkdir $M2_HOME && \
+export PATH=${M2_HOME}/bin:${PATH} ;\
+export MAVEN_INSTALL_DIR=${HOME}/usr/local/bin/maven; \
+mkdir -p ${MAVEN_INSTALL_DIR} && \
+export URL_DOWN="https://www-us.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.tar.gz"
+wget  $URL_DOWN -P /tmp && \
+tar xf /tmp/apache-maven-${MVN_VERSION}-bin.tar.gz -C ${MAVEN_INSTALL_DIR} && \
+ls -rtl ${MAVEN_INSTALL_DIR} && \
+rm -rf /tmp/apache-maven-${MVN_VERSION}-bin.tar.gz && \
+export MAVEN_HOME=${MAVEN_INSTALL_DIR}/apache-maven-${MVN_VERSION}/bin ;\
+export PATH=${MAVEN_HOME}:${PATH} ;\
+mvn --version && \
+echo "done"
+
+
+export JAVA_MAJOR_VERSION="8" ;\
+export JAVA_UPDATE_VERSION="181" ;\
+export JAVA_BUILD_NUMBER="13" ;\
+export JAVA_DOWNLOAD_TOKEN="96a7b8442fe848ef90c96a2fad6ed6d1" ;\
+export UPDATE_VERSION=${JAVA_MAJOR_VERSION}u${JAVA_UPDATE_VERSION} ;\
+export BUILD_VERSION="b${JAVA_BUILD_NUMBER}" ;\
+export JAVA_INSTALL_DIR="${HOME}/usr/local/bin/java" ;\
+mkdir ${JAVA_INSTALL_DIR} && \
+export JAVA_HOME="${JAVA_INSTALL_DIR}/jdk1.${JAVA_MAJOR_VERSION}.0_${JAVA_UPDATE_VERSION}" ;\
+export PATH=${JAVA_HOME}/bin:${PATH} ;\
+export JAVA_URL="http://download.oracle.com/otn-pub/java/jdk/${UPDATE_VERSION}-${BUILD_VERSION}/${JAVA_DOWNLOAD_TOKEN}/jdk-${UPDATE_VERSION}-linux-x64.tar.gz" ;\
+export HEADER="--no-check-certificate --no-cookies oraclelicense=accept-securebackup-cookie" ;\
+echo "java url: ${JAVA_URL}" && \
+curl -sL --retry 3 --insecure --header $HEADER $JAVA_URL | gunzip | tar x -C $INSTALL_DIR/
+
+git clone https://gitlab.pasteur.fr/Openshift_public/docker_images.git:main-master --recursive
+git checkout
+&& rm -rf ${JAVA_HOME}/man
+
+
+export MVN_VERSION="3.6.3" ;\
+export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64" ;\
+export M2_HOME=${HOME}/usr/local/bin/m2_${MVN_VERSION}_openjdk11 ;\
+export MAVEN_INSTALL_DIR=${HOME}/usr/local/bin/maven; \
+export MAVEN_HOME=${MAVEN_INSTALL_DIR}/apache-maven-${MVN_VERSION}/bin ;\
+export PATH=${JAVA_HOME}/bin:${PATH} ;\
+export PATH=${M2_HOME}/bin:${PATH} ;\
+export PATH=${MAVEN_HOME}:${PATH} ;\
+mvn --version &&\
+echo "done"
+
+
+git clone https://github.com/veita/oracle-java-download.git && \
+cd oracle-java-download && \
+./gradlew assembleShadowDistgroupie

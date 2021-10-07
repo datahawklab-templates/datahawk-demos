@@ -1,0 +1,75 @@
+---
+config:
+  linux.kernel_modules: ip_tables
+  security.nesting: "true"
+  security.privileged: "true"
+  user.user-data: |
+    #cloud-config
+    output:
+      all: '| tee -a /var/log/cloud-init-output.log'
+    package_update: true
+    package_upgrade: true
+    packages:`
+    - docker.io
+    - docker-compose
+    - build-essential
+    - cloud-utils
+    - vim
+    - ansible
+    - nodejs
+    - npm
+    - git
+    runcmd:
+    - set -xe
+    - mkdir -p /awx/src
+    - mkdir /awx/ca-trust
+    - cat > '/awx/ca-trust/cacert.pem' << 'EOF'
+    - |-
+      -----BEGIN CERTIFICATE-----
+      YOUR INTERNAL CA PEM HERE
+      -----END CERTIFICATE-----
+      EOF
+    - chmod 444 '/awx/ca-trust/cacert.pem'
+    - chmod 555 '/awx/ca-trust'
+    - git clone 'https://github.com/ansible/awx.git' '/awx/src/awx'
+    - git clone 'https://github.com/ansible/awx-logos.git' '/awx/src/awx-logos'
+    - systemctl start docker
+    - systemctl enable docker
+    - sed -i 's/postgres_data_dir/# postgres_data_dir/' '/awx/src/awx/installer/inventory'
+    - cat >> '/awx/src/awx/installer/inventory' << 'EOF'
+    - |-
+      postgres_data_dir=/awx/db
+      awx_official=true
+      project_data_dir=/awx/projects
+      ca_trust_dir=/awx/ca-trust
+      use_docker_compose=false
+
+      EOF
+    - |-
+      env HOME=/root USER=root ansible-playbook -vi /awx/src/awx/installer/inventory \
+        /awx/src/awx/installer/install.yml
+    users:
+    - groups:
+      - adm
+      - audio
+      - cdrom
+      - dialout
+      - dip
+      - floppy
+      - netdev
+      - plugdev
+      - sudo
+      - video
+      - docker
+      lock_passwd: true
+      name: ubuntu
+      shell: /bin/bash
+      ssh-authorized-keys:
+      - ssh-rsa PUT YOUR SSH KEYS HERE user@asdf
+      - ssh-rsa PUT YOUR SSH KEYS HERE user@jkl;
+      sudo:
+      - ALL=(ALL) NOPASSWD:ALL
+description: Installs awx in lxd
+devices: {}
+name: awx
+used_by: []

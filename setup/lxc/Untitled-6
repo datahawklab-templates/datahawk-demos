@@ -1,0 +1,106 @@
+> ls -l /dev/disk/by-id/
+total 0
+lrwxrwxrwx 1 root root  9 Mar 15 05:13 ata-WDC_WD10SPZX-21Z10T0_WD-WX61A78NHLD3 -> ../../sda
+lrwxrwxrwx 1 root root  9 Mar 15 05:13 ata-WDC_WDS500G2B0B-00YS70_182826807549 -> ../../sdb
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 ata-WDC_WDS500G2B0B-00YS70_182826807549-part1 -> ../../sdb1
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 ata-WDC_WDS500G2B0B-00YS70_182826807549-part2 -> ../../sdb2
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 dm-name-vgmint-root -> ../../dm-0
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 dm-name-vgmint-swap_1 -> ../../dm-1
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 dm-uuid-LVM-B1s1RVrCWtWD4gGc1U3AHVgmwhNUZBLHSB8YvbTdx6VsMBM9aPTR5bM9IyfqAuB9 -> ../../dm-1
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 dm-uuid-LVM-B1s1RVrCWtWD4gGc1U3AHVgmwhNUZBLHufaWqpO4fNsFh7N4VqLwwwikd6huVgUV -> ../../dm-0
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 lvm-pv-uuid-fJhtdx-lvuX-j4no-ZivF-JfQB-TBJZ-1afk9d -> ../../sdb2
+lrwxrwxrwx 1 root root  9 Mar 15 05:13 wwn-0x50014ee6b38636fc -> ../../sda
+lrwxrwxrwx 1 root root  9 Mar 15 05:13 wwn-0x5001b448b6fba142 -> ../../sdb
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 wwn-0x5001b448b6fba142-part1 -> ../../sdb1
+lrwxrwxrwx 1 root root 10 Mar 15 05:13 wwn-0x5001b448b6fba142-part2 -> ../../sdb2
+
+
+
+/dev/disk/by-id/dm-name-vgmint-root
+lxc config set u04 security.nesting true
+
+
+sudo systemctl stop docker
+sudo rm -rf /var/lib/docker
+sudo vim /etc/docker/daemon.json
+{
+  "storage-driver": "overlay"
+}
+sudo systemctl start docker
+
+
+. /etc/os-release
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key | sudo apt-key add -
+sudo apt-get update
+sudo apt-get -y upgrade
+sudo apt-get -y install podman
+# (Ubuntu 18.04) Restart dbus for rootless podman
+systemctl --user restart dbus
+
+
+lxc launch ubuntu-minimal:focal
+lxc exec u04 bash
+
+export VERSION_ID=20.04 ;\
+sudo sh -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list" && \
+wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_20.04/Release.key -O- | sudo apt-key add - && \
+sudo apt-get update -qq && \
+sudo apt-get -qq --yes install podman
+
+
+sudo useradd -s /bin/bash -d /home/swapanc/ -m -G sudo swapanc
+passwd swapanc
+ssh-keygen -t rsa -b 4096 -C "your_email@domain.com"
+
+
+lxc stop mycontainer,
+lxc config set mycontainer security.nesting true
+lxc start mycontainer
+
+$ export CGROUPDIR=/sys/fs/cgroup/user.slice/user-$UID.slice/user@$UID.service/myshell.scope
+$ systemd-run --unit=myshell --user --scope -p "Delegate=yes" /bin/bash
+$ mkdir $CGROUPDIR/monitor
+$ echo $$ >$CGROUPDIR/monitor/cgroup.procs
+$ echo +cpu +io +memory +pids  >$CGROUPDIR/cgroup.subtree_controll
+$ chmod a=rwx $CGROUPDIR
+$ chmod a=rw $CGROUPDIR/cgroup.procs
+$ exec lxc-usernsexec
+
+
+# mkdir $CGROUPDIR/payload
+# echo $$ >$CGROUPDIR/payload/cgroup.procs
+# exec unshare -C
+# mkdir /tmp/mycgroup
+# mount -t cgroup2 -o rw cgroup2 /tmp/mycgroup
+# mkdir /tmp/mycgroup/test
+# echo $$ >/tmp/mycgroup/test/cgroup.procs
+# echo +pids >/tmp/mycgroup/cgroup.subtree_control
+
+# cat /proc/$$/cgroup
+0::/test
+# cat /proc/mounts | grep cgroup
+cgroup2 /sys/fs/cgroup cgroup2 rw,nosuid,nodev,noexec,relatime,nsdelegate 0 0
+cgroup2 /tmp/mycgroup cgroup2 rw,relatime,nsdelegate 0 0
+systemctl --user status myshell.scope
+
+apt-get install -y make git gcc build-essential pkgconf libtool \
+   libsystemd-dev libcap-dev libseccomp-dev libyajl-dev \
+   go-md2man libtool autoconf python3 automake && \
+git clone https://github.com/containers/crun.git && \
+cd crun && \
+./autogen.sh && \
+./configure --enable-shared && \
+make && \
+make install
+
+
+podman --runtime /usr/bin/crun run --rm --memory 4M fedora
+
+LXD: lxc stop myfirstcontainer
+
+lxc publish myfirstcontainer --alias ubuntunginx
+lxc image list
+lxc image export ubuntunginx
+lxc image import ubuntunginx.tar.gz --ubuntunginx
+lxc launch ubuntunginx mysecondcontainer

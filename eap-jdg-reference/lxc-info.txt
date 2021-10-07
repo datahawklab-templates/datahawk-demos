@@ -1,0 +1,152 @@
+curl -s -k --cert ~/.config/lxc/client.crt --key ~/.config/lxc/client.key https://127.0.0.1:8443/1.0/certificates -X POST -d '{"type": "client", "password": "tublu1224"}' | jq .
+
+
+
+
+curl --unix-socket /var/snap/lxd/common/lxd/unix.socket s/
+
+curl -s --unix-socket /var/snap/lxd/common/lxd/unix.socket s/ | jq .
+
+curl -s -k --cert ~/.config/lxc/client.crt --key ~/.config/lxc/client.key https://127.0.0.1:8443/1.0 | jq .metadata.auth
+
+lxc launch images:oracle/7/amd64 mortyc-137
+yum install -y oraclelinux-release-el7.x86_64
+/etc/security/limits.d/oracle-database-preinstall-18c.conf
+yum -y install https://download.oracle.com/otn-pub/otn_software/db-express/oracle-database-xe-18c-1.0-1.x86_64.rpm
+/etc/init.d/oracle-xe-18c configure
+etc/init.d/oracle-xe-18c configure
+
+lxc launch ol7-xe18c mortyc-1
+
+
+# lxc config device add mortyc-137 oralistener proxy connect=tcp:127.0.0.1:1539 listen=tcp:0.0.0.0:1539
+
+cd ~/.ssh && \
+scp swapanc@swapanc-ThinkCentre-M93p:/~.ssh/* .
+
+lxc launch images:oracle/8/cloud orcl1
+
+
+
+
+wsl --install --distribution ubuntu
+wsl --update
+
+
+
+
+# Move to your WSL2 home directory
+cd
+
+# Install the needed packages
+# Source: https://github.com/microsoft/WSL2-Linux-Kernel/blob/7015d6023d60b29c3be4c6a398bed923b48b4341/README-Microsoft.WSL2
+sudo apt install -y build-essential flex bison libssl-dev libelf-dev
+
+# Get the latest stable Linux Kernel, but only the latest version of each file and only the specific branch we want
+# git needs to be installed
+git clone --depth 1 --branch linux-rolling-stable https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+
+# Ensure the "stable" branch is the active one
+cd linux
+git checkout linux-rolling-stable
+
+# Get a kernel config optimized for WSL2 
+# Source: https://github.com/microsoft/WSL2-Linux-Kernel/pull/176
+wget https://github.com/microsoft/WSL2-Linux-Kernel/blob/7015d6023d60b29c3be4c6a398bed923b48b4341/Microsoft/config-wsl -O .config
+
+# Change the LOCALVERSION value
+sed -i 's/microsoft-standard-WSL2/generic/' ./.config
+
+# [Optional] before we start the compilation, let's "update" the config file to include the newest Kernel options
+make prepare
+
+## The only option I didn't choose the default value was:
+*
+* Preload BPF file system with kernel specific program and map iterators
+*
+Preload BPF file system with kernel specific program and map iterators (BPF_PRELOAD) [N/y/?] (NEW) y
+
+# Now that everything is ready, let's compile the kernel
+make -j $(nproc)
+
+# Once the compilation is done, we can install the "optional" modules
+sudo make modules_install
+
+# Copy the kernel into a directory in the Windows filesystem 
+# I recommend creating a wslkernel directory
+mkdir /mnt/c/wslkernel
+cp arch/x86/boot/bzImage /mnt/c/wslkernel/kernelfalco
+
+# Last step, the kernel needs to be referenced in the file .wslconfig 
+# I'm using vi but feel free to use your preferred text editor
+vi /mnt/c/Users/<your username>/.wslconfig
+
+## The content of the file should look like this
+## Source: https://docs.microsoft.com/en-us/windows/wsl/wsl-config#wsl-2-settings
+[wsl2]
+kernel = c:\\wslkernel\\kernelfalco
+swap = 0
+localhostForwarding = true
+
+wsl --shutdown
+startup
+uname -a
+	
+
+sudo wget https://raw.githubusercontent.com/diddlesnaps/one-script-wsl2-systemd/master/src/00-wsl2-systemd.sh -O /etc/profile.d/00-wsl2-systemd.sh
+# [Optional] The script calls itself with sudo if the user is not root, so in order to avoid typing your password at every first WSL2 boot (after a shutdown only), you might want to add the following file to sudoers.d directory
+sudo wget https://raw.githubusercontent.com/diddlesnaps/one-script-wsl2-systemd/build-21286%2B/src/sudoers -O /etc/sudoers.d/wsl2-systemd
+wsl --shutdown
+ps -aux
+
+
+
+
+ Move to your WSL2 home directory
+cd
+
+# Run the step 1 of the Falco documentation: add the repo
+curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | sudo apt-key add -
+echo "deb https://download.falco.org/packages/deb stable main" | sudo tee -a /etc/apt/sources.list.d/falcosecurity.list
+sudo apt update
+
+# As stated above, for the step 2, let's download the Kernel headers packages
+# In my case, I will take the "amd64" ones to match my CPU model. If you're on ARM, download the matching ones
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.4/amd64/linux-headers-5.10.4-051004_5.10.4-051004.202012301142_all.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.4/amd64/linux-headers-5.10.4-051004-generic_5.10.4-051004.202012301142_amd64.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.4/amd64/linux-image-unsigned-5.10.4-051004-generic_5.10.4-051004.202012301142_amd64.deb
+wget https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.10.4/amd64/linux-modules-5.10.4-051004-generic_5.10.4-051004.202012301142_amd64.deb
+
+# Install the packages in this exact order, as the headers "generic" is depending on the headers "all"
+sudo dpkg -i linux-headers-5.10.4-051004_5.10.4-051004.202012301142_all.deb
+sudo dpkg -i linux-headers-5.10.4-051004-generic_5.10.4-051004.202012301142_amd64.deb
+sudo dpkg -i linux-image-unsigned-5.10.4-051004-generic_5.10.4-051004.202012301142_amd64.deb
+sudo dpkg -i linux-modules-5.10.4-051004-generic_5.10.4-051004.202012301142_amd64.deb
+
+# Install Falco from the repository
+sudo apt install -y falco
+
+
+
+# Check the kernel loaded modules
+# Falco should not appear
+lsmod
+
+# Enable the Falco service and start it
+sudo systemctl enable falco
+sudo systemctl start falco
+
+# Check again the kernel loaded modules
+# Falco should appear now
+lsmod
+
+# View the Falco logs
+journalctl -fu falco
+
+
+wsl --update and you’ll be set to use GUI apps. If you don’t have WSL enabled, running wsl --install will install WSLg automatically as part of the initial WSL setup.
+
+
+
+https://downloadcenter.intel.com/download/29526
+

@@ -1,0 +1,840 @@
+A subsystem provides configuration options for a particular extension. For more information on the available subsystems, see Overview o
+
+
+A collection of subsystem configurations makes up a profile, which is configured to satisfy the needs for the server. A standalone server has a single, unnamed profile. A managed domain can define many profiles
+
+is datasource enabled?
+/subsystem=datasources/data-source=ExampleDS:read-attribute(name=enabled)
+
+When running in a managed domain, you must specify which profile to update by preceding the command with /profile=PROFILE_NAME.
+
+/profile=default/subsystem=datasources/data-source=ExampleDS:read-attribute(name=enabled)
+
+Example: Read All Attributes and Values for a Resource
+
+http://HOST_NAME:9990/management/subsystem/undertow/server/default-server/http-listener/default
+
+
+Example: Read the Value of an Attribute for a Resource
+
+http://HOST_NAME:9990/management/subsystem/datasources/data-source/ExampleDS?operation=attribute&name=enabled
+
+Example: Update the Value of an Attribute for a Resource
+
+$ curl --digest http://HOST_NAME:9990/management --header "Content-Type: application/json" -u USERNAME:PASSWORD -d '{"operation":"write-attribute", "address":["subsystem","datasources","data-source","ExampleDS"], "name":"enabled", "value":"false", "json.pretty":"1"}'
+
+
+Example: Issue an Operation to the Server
+
+$ curl --digest http://localhost:9990/management --header "Content-Type: application/json" -u USERNAME:PASSWORD -d '{"operation":"reload"}'
+
+domain mode
+To define a single custom-constant HTTP header, use the following command:
+
+/host=master/core-service=management/management-interface=http-interface:write-attribute(name=constant-headers,value=[{path=/PREFIX,headers=[{name=X-HEADER,value=HEADER-VALUE}]}])
+The command results in the following XML configuration:
+
+<management-interfaces>
+    <http-interface security-realm="ManagementRealm">
+        <http-upgrade enabled="true"/>
+        <socket interface="management" port="${jboss.management.http.port:9990}"/>
+        <constant-headers>
+            <header-mapping path="/PREFIX">
+                <header name="X-HEADER" value="HEADER-VALUE"/>
+            </header-mapping>
+        </constant-headers>
+    </http-interface>
+</management-interfaces>
+
+
+
+// Create the management client
+ModelControllerClient client = ModelControllerClient.Factory.create("localhost", 9990);
+
+// Create the operation request
+ModelNode op = new ModelNode();
+
+// Set the operation
+op.get("operation").set("read-resource");
+
+// Set the address
+ModelNode address = op.get("address");
+address.add("subsystem", "undertow");
+address.add("server", "default-server");
+address.add("http-listener", "default");
+
+// Execute the operation and manipulate the result
+ModelNode returnVal = client.execute(op);
+System.out.println("Outcome: " + returnVal.get("outcome").toString());
+System.out.println("Result: " + returnVal.get("result").toString());
+
+// Close the client
+client.close();
+
+$ EAP_HOME/bin/domain.sh --host-config=host-master.xml
+
+Start the Server with a Snapshot
+
+
+
+
+deployment deploy-file /path/to/test-application.war
+A successful deployment does not produce any output to the management CLI, but the server log displays deployment messages.
+
+WFLYSRV0027: Starting deployment of "test-application.war" (runtime-name: "test-application.war")
+WFLYUT0021: Registered web context: /test-application
+WFLYSRV0010: Deployed "test-application.war" (runtime-name : "test-application.war")
+
+
+
+
+Undeploy an Application
+From the management CLI, use the deployment undeploy command and specify the deployment name. This will delete the deployment content from the repository. See Disable an Application for keeping the deployment content when undeploying.
+
+deployment undeploy test-application.war
+A successful undeployment does not produce any output to the management CLI, but the server log displays undeployment messages.
+
+WFLYUT0022: Unregistered web context: /test-application
+WFLYSRV0028: Stopped deployment test-application.war (runtime-name: test-application.war) in 62ms
+WFLYSRV0009: Undeployed "test-application.war" (runtime-name: "test-application.war")
+
+
+
+
+To deploy the application to all server groups.
+
+deployment deploy-file /path/to/test-application.war --all-server-groups
+To deploy the application to specific server groups.
+
+deployment deploy-file /path/to/test-application.war --server-groups=main-server-group,other-server-group
+A successful deployment does not produce any output to the management CLI, but the server log displays deployment messages for each affected server.
+
+[Server:server-one] WFLYSRV0027: Starting deployment of "test-application.war" (runtime-name: "test-application.war")
+[Server:server-one] WFLYUT0021: Registered web context: /test-application
+[Server:server-one] WFLYSRV0010: Deployed "test-application.war" (runtime-name : "test-application.war")
+
+
+
+
+Deploy an Application
+When deploying an application in a managed domain, you must specify the server groups to which the application should be deployed. This is configured in the Maven pom.xml file.
+
+The following configuration in the pom.xml initializes the WildFly Maven Plugin and specifies main-server-group as the server group to which the application should be deployed.
+
+<plugin>
+  <groupId>org.wildfly.plugins</groupId>
+  <artifactId>wildfly-maven-plugin</artifactId>
+  <version>${version.wildfly.maven.plugin}</version>
+  <configuration>
+    <domain>
+      <server-groups>
+        <server-group>main-server-group</server-group>
+      </server-groups>
+    </domain>
+  </configuration>
+</plugin>
+
+
+
+7.5.1. Deploy an Application to a Standalone Server Using the HTTP API
+By default, the HTTP API is accessible at http://HOST:PORT/management, for example, http://localhost:9990/management.
+
+Deploy an Application
+$ curl --digest -L -D - http://HOST:PORT/management --header "Content-Type: application/json" -u USER:PASSWORD -d '{"operation" : "composite", "address" : [], "steps" : [{"operation" : "add", "address" : {"deployment" : "test-application.war"}, "content" : [{"url" : "file:/path/to/test-application.war"}]},{"operation" : "deploy", "address" : {"deployment" : "test-application.war"}}],"json.pretty":1}'
+Undeploy an Application
+$ curl --digest -L -D - http://HOST:PORT/management --header "Content-Type: application/json" -u USER:PASSWORD -d '{"operation" : "composite", "address" : [], "steps" : [{"operation" : "undeploy", "address" : {"deployment" : "test-application.war"}},{"operation" : "remove", "address" : {"deployment" : "test-application.war"}}],"json.pretty":1}'
+
+
+Deploy an Application
+Add the deployment to the content repository.
+
+$ curl --digest -L -D - http://HOST:PORT/management --header "Content-Type: application/json" -u USER:PASSWORD -d '{"operation" : "add", "address" : {"deployment" : "test-application.war"}, "content" : [{"url" : "file:/path/to/test-application.war"}],"json.pretty":1}'
+Add the deployment to the desired server group.
+
+$ curl --digest -L -D - http://HOST:PORT/management --header "Content-Type: application/json" -u USER:PASSWORD -d '{"operation" : "add", "address" : {"server-group" : "main-server-group","deployment":"test-application.war"},"json.pretty":1}'
+Deploy the application to the server group.
+
+$ curl --digest -L -D - http://HOST:PORT/management --header "Content-Type: application/json" -u USER:PASSWORD -d '{"operation" : "deploy", "address" : {"server-group" : "main-server-group","deployment":"test-application.war"},"json.pretty":1}'
+
+
+Launch the management CLI.
+
+$ EAP_HOME/bin/jboss-cli.sh
+Use the module add management CLI command to add the new core module.
+
+module add --name=MODULE_NAME --resources=PATH_TO_JDBC_JAR --dependencies=DEPENDENCIES
+For example, the following command adds a MySQL JDBC driver module.
+
+module add --name=com.mysql --resources=/path/to/mysql-connector-java-8.0.12.jar --dependencies=javax.api,javax.transaction.api
+
+
+
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql,driver-xa-datasource-class-name=com.mysql.cj.jdbc.MysqlXADataSource, driver-class-name=com.mysql.cj.jdbc.Driver)
+The JDBC driver is now available to be referenced by application datasources.
+
+
+
+
+Download the JDBC driver.
+
+Download the appropriate JDBC driver from your database vendor. See JDBC Driver Download Locations for standard download locations for JDBC drivers of common databases.
+
+Make sure to extract the archive if the JDBC driver JAR file is contained within a ZIP or TAR archive.
+
+If the JDBC driver is not JDBC 4-compliant, see the steps to Update a JDBC Driver JAR to be JDBC 4-Compliant.
+Deploy the JAR to JBoss EAP.
+
+deploy PATH_TO_JDBC_JAR
+NOTE
+In a managed domain, specify the appropriate server groups.
+
+For example, the following command deploys a MySQL JDBC driver.
+
+deploy /path/to/mysql-connector-java-8.0.12.jar
+A message will be displayed in the JBoss EAP server log that displays the deployed driver name, which will be used when defining datasources.
+
+WFLYJCA0018: Started Driver service with driver-name = mysql-connector-java-8.0.12.jar
+
+
+
+
+igh Availability
+JBoss EAP provides the following high availability services to guarantee the availability of deployed Jakarta EE applications.
+
+Load balancing
+This allows a service to handle a large number of requests by spreading the workload across multiple servers. A client can have timely responses from the service even in the event of a high volume of requests.
+Failover
+This allows a client to have uninterrupted access to a service even in the event of hardware or network failures. If the service fails, another cluster member takes over the client’s requests so that it can continue processing.
+
+
+
+24.2. Cluster Communication with JGroups
+24.2.1. About JGroups
+JGroups is a toolkit for reliable messaging and can be used to create clusters whose nodes can send messages to each other.
+
+
+24.2.3. Configure TCPPING
+This procedure creates a new JGroups stack that uses the TCPPING protocol to define a static cluster membership list. A base script is provided that creates a tcpping stack and sets the default ee channel to use this new stack. The management CLI commands in this script must be customized for your environment and will be processed as a batch.
+
+Copy the following script into a text editor and save it to the local file system.
+
+# Define the socket bindings
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=jgroups-host-a:add(host=HOST_A,port=7600)
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=jgroups-host-b:add(host=HOST_B,port=7600)
+batch
+# Add the tcpping stack
+/subsystem=jgroups/stack=tcpping:add
+/subsystem=jgroups/stack=tcpping/transport=TCP:add(socket-binding=jgroups-tcp)
+/subsystem=jgroups/stack=tcpping/protocol=TCPPING:add(socket-bindings=[jgroups-host-a,jgroups-host-b])
+/subsystem=jgroups/stack=tcpping/protocol=MERGE3:add
+/subsystem=jgroups/stack=tcpping/protocol=FD_SOCK:add
+/subsystem=jgroups/stack=tcpping/protocol=FD_ALL:add
+/subsystem=jgroups/stack=tcpping/protocol=VERIFY_SUSPECT:add
+/subsystem=jgroups/stack=tcpping/protocol=pbcast.NAKACK2:add
+/subsystem=jgroups/stack=tcpping/protocol=UNICAST3:add
+/subsystem=jgroups/stack=tcpping/protocol=pbcast.STABLE:add
+/subsystem=jgroups/stack=tcpping/protocol=pbcast.GMS:add
+/subsystem=jgroups/stack=tcpping/protocol=MFC:add
+/subsystem=jgroups/stack=tcpping/protocol=FRAG2:add
+# Set tcpping as the stack for the ee channel
+/subsystem=jgroups/channel=ee:write-attribute(name=stack,value=tcpping)
+run-batch
+reload
+
+
+
+
+
+
+
+24.2.4. Configure TCPGOSSIP
+This procedure creates a new JGroups stack that uses the TCPGOSSIP protocol to use an external gossip router to discover the members of a cluster. A base script is provided that creates a tcpgossip stack and sets the default ee channel to use this new stack. The management CLI commands in this script must be customized for your environment and will be processed as a batch.
+
+Copy the following script into a text editor and save it to the local file system.
+
+# Define the socket bindings
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=jgroups-host-a:add(host=HOST_A,port=13001)
+batch
+# Add the tcpgossip stack
+/subsystem=jgroups/stack=tcpgossip:add
+/subsystem=jgroups/stack=tcpgossip/transport=TCP:add(socket-binding=jgroups-tcp)
+/subsystem=jgroups/stack=tcpgossip/protocol=TCPGOSSIP:add(socket-bindings=[jgroups-host-a])
+/subsystem=jgroups/stack=tcpgossip/protocol=MERGE3:add
+/subsystem=jgroups/stack=tcpgossip/protocol=FD_SOCK:add
+/subsystem=jgroups/stack=tcpgossip/protocol=FD_ALL:add
+/subsystem=jgroups/stack=tcpgossip/protocol=VERIFY_SUSPECT:add
+/subsystem=jgroups/stack=tcpgossip/protocol=pbcast.NAKACK2:add
+/subsystem=jgroups/stack=tcpgossip/protocol=UNICAST3:add
+/subsystem=jgroups/stack=tcpgossip/protocol=pbcast.STABLE:add
+/subsystem=jgroups/stack=tcpgossip/protocol=pbcast.GMS:add
+/subsystem=jgroups/stack=tcpgossip/protocol=MFC:add
+/subsystem=jgroups/stack=tcpgossip/protocol=FRAG2:add
+# Set tcpgossip as the stack for the ee channel
+/subsystem=jgroups/channel=ee:write-attribute(name=stack,value=tcpgossip)
+run-batch
+reload
+
+
+24.2.5. Configure JDBC_PING
+You can use the JDBC_PING protocol to manage and discover membership in a cluster.
+
+JDBC_PING uses a database, specified in a data-source, to list the members of the cluster.
+
+Create a data-source to connect to the database you want to use to manage cluster membership.
+Copy the following script into a text editor and save it to the local file system.
+
+batch
+# Add the JDBC_PING stack
+/subsystem=jgroups/stack=JDBC_PING:add
+/subsystem=jgroups/stack=JDBC_PING/transport=TCP:add(socket-binding=jgroups-tcp)
+/subsystem=jgroups/stack=JDBC_PING/protocol=JDBC_PING:add(data-source=ExampleDS)
+/subsystem=jgroups/stack=JDBC_PING/protocol=MERGE3:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=FD_SOCK:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=FD_ALL:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=VERIFY_SUSPECT:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=pbcast.NAKACK2:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=UNICAST3:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=pbcast.STABLE:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=pbcast.GMS:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=MFC:add
+/subsystem=jgroups/stack=JDBC_PING/protocol=FRAG2:add
+# Set JDBC_PING as the stack for the ee channel
+/subsystem=jgroups/channel=ee:write-attribute(name=stack,value=JDBC_PING)
+run-batch
+reload
+Note that the order of protocols defined is important. You can also insert a protocol at a particular index by passing an add-index value to the add command. The index is zero-based, so the following management CLI command adds the UNICAST3 protocol as the seventh protocol.
+
+/subsystem=jgroups/stack=JDBC_PING/protocol=UNICAST3:add(add-index=6)
+Modify the script for your environment.
+
+If you are running in a managed domain, you must specify which profile to update by preceding the /subsystem=jgroups commands with /profile=PROFILE_NAME.
+Replace 'ExampleDS' with the name of the data-source you defined in Step 1.
+Run the script by passing the script file to the management CLI.
+
+$ EAP_HOME/bin/jboss-cli.sh --connect --file=/path/to/SCRIPT_NAME
+
+
+
+
+24.3.2. Cache Containers
+A cache container is a repository for the caches used by a subsystem. Each cache container defines a default cache to be used.
+
+JBoss EAP 7 defines the following default Infinispan cache containers:
+
+server for singleton caching
+web for web session clustering
+ejb for stateful session bean clustering
+hibernate for entity caching
+
+
+Example: Default Infinispan Configuration
+
+<subsystem xmlns="urn:jboss:domain:infinispan:7.0">
+  <cache-container name="server" aliases="singleton cluster" default-cache="default" module="org.wildfly.clustering.server">
+    <transport lock-timeout="60000"/>
+    <replicated-cache name="default">
+      <transaction mode="BATCH"/>
+    </replicated-cache>
+  </cache-container>
+  <cache-container name="web" default-cache="dist" module="org.wildfly.clustering.web.infinispan">
+    <transport lock-timeout="60000"/>
+    <distributed-cache name="dist">
+      <locking isolation="REPEATABLE_READ"/>
+      <transaction mode="BATCH"/>
+      <file-store/>
+    </distributed-cache>
+  </cache-container>
+  <cache-container name="ejb" aliases="sfsb" default-cache="dist" module="org.wildfly.clustering.ejb.infinispan">
+    <transport lock-timeout="60000"/>
+    <distributed-cache name="dist">
+      <locking isolation="REPEATABLE_READ"/>
+      <transaction mode="BATCH"/>
+      <file-store/>
+    </distributed-cache>
+  </cache-container>
+  <cache-container name="hibernate" default-cache="local-query" module="org.hibernate.infinispan">
+    <transport lock-timeout="60000"/>
+    <local-cache name="local-query">
+      <object-memory size="1000"/>
+      <expiration max-idle="100000"/>
+    </local-cache>
+    <invalidation-cache name="entity">
+      <transaction mode="NON_XA"/>
+      <object-memory size="1000"/>
+      <expiration max-idle="100000"/>
+    </invalidation-cache>
+    <replicated-cache name="timestamps" mode="ASYNC"/>
+  </cache-container>
+</subsystem>
+
+IMPORTANT
+You can add additional caches and cache containers, for example, for HTTP sessions, stateful session beans, or singleton services or deployments. It is not supported to use these caches directly by user applications.
+
+Configure Caches Using the Management CLI
+You can configure caches and cache containers using the management CLI. In a managed domain, you must specify the profile to update by preceding these commands with /profile=PROFILE_NAME.
+
+Add a cache container.
+
+/subsystem=infinispan/cache-container=CACHE_CONTAINER:add
+Add a replicated cache.
+
+/subsystem=infinispan/cache-container=CACHE_CONTAINER/replicated-cache=CACHE:add(mode=MODE)
+Set the default cache for a cache container.
+
+/subsystem=infinispan/cache-container=CACHE_CONTAINER:write-attribute(name=default-cache,value=CACHE)
+Configure batching for a replicated cache.
+
+/subsystem=infinispan/cache-container=CACHE_CONTAINER/replicated-cache=CACHE/component=transaction:write-attribute(name=mode,value=BATCH)
+The following example shows how to add a concurrent distributed cache to the web cache container. This cache configuration relaxes the locking constraints of the default cache, which allows multiple concurrent requests to access the same web session simultaneously. It achieves this by permitting lock-free reads and obtaining exclusive locks more frequently, but for a shorter duration.
+
+Use the following management CLI commands to add the concurrent distributed cache to the web cache container and make it the default cache:
+
+batch
+/subsystem=infinispan/cache-container=web/distributed-cache=concurrent:add
+/subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=concurrent)
+/subsystem=infinispan/cache-container=web/distributed-cache=concurrent/store=file:add
+run-batch
+This results in the following server configuration:
+
+<cache-container name="web" default-cache="concurrent" module="org.wildfly.clustering.web.infinispan">
+  ...
+  <distributed-cache name="concurrent">
+      <file-store/>
+  </distributed-cache>
+</cache-container>z
+
+
+
+24.3.3. Clustering Modes
+Clustering can be configured in two different ways in JBoss EAP using Infinispan. The best method for your application will depend on your requirements. There is a trade-off between availability, consistency, reliability and scalability with each mode. Before choosing a clustering mode, you must identify what are the most important features of your network for you, and balance those requirements.
+
+Cache Modes
+Replication
+Replication mode automatically detects and adds new instances on the cluster. Changes made to these instances will be replicated to all nodes on the cluster. Replication mode typically works best in small clusters because of the amount of information that has to be replicated over the network. Infinispan can be configured to use UDP multicast, which alleviates network traffic congestion to a degree.
+Distribution
+Distribution mode allows Infinispan to scale the cluster linearly. Distribution mode uses a consistent hash algorithm to determine where in a cluster a new node should be placed. The number of copies, or owners, of information to be kept is configurable. There is a trade-off between the number of copies kept, durability of the data, and performance. The more copies that are kept, the more impact on performance, but the less likely you are to lose data in a server failure. The hash algorithm also works to reduce network traffic by locating entries without multicasting or storing metadata.
+
+You should consider using distribution mode as a caching strategy when the cluster size exceeds 6-8 nodes. With distribution mode, data is distributed to only a subset of nodes within the cluster, as opposed to all nodes.
+
+Scattered
+Scattered mode is similar to distribution mode in that it uses a consistent hash algorithm to determine ownership. However, ownership is limited to two members, and the originator, or node receiving the request for a given session, always assumes ownership for coordinating locking and cache entry updates. The cache write algorithm used in scattered mode guarantees that a write operation results in only a single RPC call, where distribution caches with two owners can often use two RPC calls. This can be useful for distributed web sessions because load balancer failover tends to direct traffic to a non-primary owner or even a backup node. This can potentially reduce contention and improve performance following a cluster topology change.
+
+Scattered mode does not support transactions or L1 caching. However, it does support biased reads, which allow the node that originates a cache write for a given entry to continue to service reads for that entry for some duration even though it is not the owner according to the consistent hash. The effect is similar to L1 caching, although the configuration attributes for biased reads versus L1 caching are distinct.
+
+Synchronous and Asynchronous Replication
+
+
+
+
+Add the repl replication cache and set it as the default cache.
+
+batch
+/subsystem=infinispan/cache-container=web/replicated-cache=repl:add(mode=ASYNC)
+/subsystem=infinispan/cache-container=web/replicated-cache=repl/component=transaction:add(mode=BATCH)
+/subsystem=infinispan/cache-container=web/replicated-cache=repl/component=locking:add(isolation=REPEATABLE_READ)
+/subsystem=infinispan/cache-container=web/replicated-cache=repl/store=file:add
+/subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=repl)
+run-batch
+Reload the server.
+
+reload
+
+
+Change the default cache to the dist distribution cache.
+
+/subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=dist)
+Set the number of owners for the distribution cache. The following command sets 5 owners. The default is 2.
+
+/subsystem=infinispan/cache-container=web/distributed-cache=dist:write-attribute(name=owners,value=5)
+Reload the server.
+
+reload
+
+
+
+
+Create the scattered cache with a read bias lifespan equal to the default web session timeout value of 30 minutes .
+
+/subsystem=infinispan/cache-container=web/scattered-cache=scattered:add(bias-lifespan=1800000)
+Set scattered as the default cache.
+
+/subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=scattered)
+This results in the following server configuration.
+
+<cache-container name="web" default-cache="scattered" module="org.wildfly.clustering.web.infinispan">
+    ...
+    <scattered-cache name="scattered" bias-lifespan="1800000"/>
+    ...
+</cache-container>
+
+
+24.3.4. State Transfer
+The initial state transfer for a newly started cache is the most expensive, as the new cache must receive the maximum amount of state, based on the cache’s mode as discussed below.
+
+The timeout attribute can be used to control how long the newly started cache waits to receive its state.
+
+/subsystem=infinispan/cache-container=server/CACHE_TYPE=CACHE/component=state-transfer:write-attribute(name=timeout,value=0)
+
+
+24.3.5. Configure Infinispan Thread Pools
+The infinispan subsystem contains the async-operations, expiration, listener, persistence, remote-command, state-transfer, and transport thread pools
+
+
+
+24.3.8.1. Creating a Remote Cache Containe
+
+Procedure
+
+Define a socket-binding, repeating the command as necessary for each remote Red Hat Data Grid instance in the cluster.
+
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=SOCKET_BINDING:add(host=HOSTNAME,port=PORT)
+Define a remote-cache-container that references the newly created socket bindings.
+
+batch
+/subsystem=infinispan/remote-cache-container=CACHE_CONTAINER:add(default-remote-cluster=data-grid-cluster)
+/subsystem=infinispan/remote-cache-container=CACHE_CONTAINER/remote-cluster=data-grid-cluster:add(socket-bindings=[SOCKET_BINDING,SOCKET_BINDING_2,...])
+run-batch
+24.3.8.2. Enabling Statistics for a Remote Cache Container
+The statistics-enabled attribute enables a collection of metrics for a given remote-cache-container and associated runtime caches.
+
+For a remote-cache-container called "foo", enable statistics using the following operation:
+/subsystem=infinispan/remote-cache-container=foo:write-attribute(name=statistics-enabled, value=true)
+For a remote-cache-container "foo", the following metrics are visible at runtime:
+/subsystem=infinispan/remote-cache-container=foo:read-attribute(name=connections)
+/subsystem=infinispan/remote-cache-container=foo:read-attribute(name=active-connections)
+/subsystem=infinispan/remote-cache-container=foo:read-attribute(name=idle-connections)
+For descriptions of these metrics, execute a read-resource-description operation for the remote-cache-container:
+/subsystem=infinispan/remote-cache-container=foo:read-resource-description
+The following metrics are specific to the remote cache used by the selected deployment:
+/subsystem=infinispan/remote-cache-container=foo/remote-cache=bar.war:read-resource(include-runtime=true, recursive=true)
+{
+    "average-read-time" : 1,
+    "average-remove-time" : 0,
+    "average-write-time" : 2,
+    "hits" : 9,
+    "misses" : 0,
+    "near-cache-hits" : 7,
+    "near-cache-invalidations" : 8,
+    "near-cache-misses" : 9,
+    "near-cache-size" : 1,
+    "removes" : 0,
+    "time-since-reset" : 82344,
+    "writes" : 8
+}
+For descriptions of these metrics, execute a read-resource-description operation for the remote cache:
+/subsystem=infinispan/remote-cache-container=foo/remote-cache=bar.war:read-resource-description
+Some of these metrics are computed values (example, average-*), while others are tallied, such as hits and misses. The tallied metrics can be reset by the following operation:
+/subsystem=infinispan/remote-cache-container=foo/remote-cache=bar.war:reset-statistics()
+
+
+
+
+Once the remote cache container has been configured, a hotrod store can be configured to replace any existing store. The following CLI script demonstrates a typical use case for offloading sessions in conjunction with the invalidation cache.
+
+batch
+/subsystem=infinispan/cache-container=web/invalidation-cache=CACHE_NAME:add()
+/subsystem=infinispan/cache-container=web/invalidation-cache=CACHE_NAME/store=hotrod:add(remote-cache-container=CACHE_CONTAINER,fetch-state=false,purge=false,passivation=false,shared=true)
+/subsystem=infinispan/cache-container=web/invalidation-cache=CACHE_NAME/component=transaction:add(mode=BATCH)
+/subsystem=infinispan/cache-container=web/invalidation-cache=CACHE_NAME/component=locking:add(isolation=REPEATABLE_READ)
+/subsystem=infinispan/cache-container=web:write-attribute(name=default-cache,value=CACHE_NAME)
+run-batch
+The script configures a new invalidation cache. Session data is then maintained in the cache for performance and written to the store for resilience.
+
+A HotRod client can be injected directly into Jakarta EE applications using the @Resource annotation. In the example below, the @Resource annotation looks up the configuration properties in the class path, in the hotrod-client.properties file.
+
+@Resource(lookup = "java:jboss/infinispan/remote-container/web-sessions")
+private org.infinispan.client.hotrod.RemoteCacheContainer client;
+Example: hotrod-client.properties File
+
+infinispan.client.hotrod.transport_factory = org.infinispan.client.hotrod.impl.transport.tcp.TcpTransportFactory
+infinispan.client.hotrod.server_list = 127.0.0.1:11222
+infinispan.client.hotrod.marshaller = org.infinispan.commons.marshall.jboss.GenericJBossMarshaller
+infinispan.client.hotrod.async_executor_factory = org.infinispan.client.hotrod.impl.async.DefaultAsyncExecutorFactory
+infinispan.client.hotrod.default_executor_factory.pool_size = 1
+infinispan.client.hotrod.default_executor_factory.queue_size = 10000
+infinispan.client.hotrod.hash_function_impl.1 = org.infinispan.client.hotrod.impl.consistenthash.ConsistentHashV1
+infinispan.client.hotrod.tcp_no_delay = true
+infinispan.client.hotrod.ping_on_startup = true
+infinispan.client.hotrod.request_balancing_strategy = org.infinispan.client.hotrod.impl.transport.tcp.RoundRobinBalancingStrategy
+infinispan.client.hotrod.key_size_estimate = 64
+infinispan.client.hotrod.value_size_estimate = 512
+infinispan.client.hotrod.force_return_values = false
+
+## below is connection pooling config
+
+maxActive=-1
+maxTotal = -1
+maxIdle = -1
+whenExhaustedAction = 1
+timeBetweenEvictionRunsMillis=120000
+minEvictableIdleTimeMillis=300000
+testWhileIdle = true
+minIdle = 1
+
+
+
+
+Set the mod_cluster advertise security key.
+
+Adding the advertise security key allows the load balancer and servers to authenticate during discovery.
+
+Use the following management CLI command to set the mod_cluster advertise security key.
+
+/profile=ha/subsystem=modcluster/proxy=default:write-attribute(name=advertise-security-key, value=mypassword)
+Update the mod_cluster load balancer’s security key.
+
+Use the following management CLI command to set the security key for the mod_cluster filter.
+
+/profile=load-balancer/subsystem=undertow/configuration=filter/mod-cluster=load-balancer:write-attribute(name=security-key,value=mypassword)
+
+
+
+Multiple mod_cluster Configurations
+The mod_cluster subsystem supports multiple named proxy configurations which allows to register non-default undertow servers with the reverse proxies. Moreover, this allows single application server node to register with different groups of proxy servers.
+
+The following example adds an ajp-listener, a server, and a host to the undertow server. It also adds a new mod_cluster configuration that registers the host using the advertise mechanism.
+
+/socket-binding-group=standard-sockets/socket-binding=ajp-other:add(port=8010)
+/subsystem=undertow/server=other-server:add
+/subsystem=undertow/server=other-server/ajp-listener=ajp-other:add(socket-binding=ajp-other)
+/subsystem=undertow/server=other-server/host=other-host:add(default-web-module=root-other.war)
+/subsystem=undertow/server=other-server/host=other-host
+/location=other:add(handler=welcome-content)
+/subsystem=undertow/server=other-server/host=other-host:write-attribute(name=alias,value=[localhost]))
+
+/socket-binding-group=standard-sockets/socket-binding=modcluster-other:add(multicast-address=224.0.1.106,multicast-port=23364)
+/subsystem=modcluster/proxy=other:add(advertise-socket=modcluster-other,balancer=other-balancer,connector=ajp-other)
+
+reload
+24.4.2. Enabling Ranked Session Affinity in Your Load Balancer
+You must enable ranked session affinity in your load balancer to have session affinity with multiple, ordered routes in the distributable-web subsystem. For more information about the distributable-web subsystem and the different affinity options, see The distributable-web subsystem for Distributable Web Session Configurations in the Development Guide for JBoss EAP.
+
+The default delimiter that separates the node routes is .. If you want a different value, you can configure the delimiter attribute of the affinity resource.
+
+Procedure
+
+Enable ranked session affinity for a load balancer:
+
+/subsystem=undertow/configuration=filter/mod-cluster=load-balancer/affinity=ranked:add
+Optional: Configure the delimiter attribute of the affinity resource:
+
+/subsystem=undertow/configuration=filter/mod-cluster=load-balancer/affinity=ranked:write-attribute(name=delimiter,value=':')
+24.4.3. Configure Undertow as a Static Load Balancer
+To configure a static load balancer with Undertow, you need to configure a proxy handler in the undertow subsystem. To configure a proxy handler in Undertow, you need to do the following on your JBoss EAP instance that will serve as your static load balancer:
+
+Add a reverse proxy handler
+Define the outbound socket bindings for each remote host
+Add each remote host to the reverse proxy handler
+Add the reverse proxy location
+The following example shows how to configure a JBoss EAP instance to be a static load balancer. The JBoss EAP instance is located at lb.example.com and will load balance between two additional servers: server1.example.com and server2.example.com. The load balancer will reverse-proxy to the location /app and will use the AJP protocol.
+
+To add a reverse proxy handler:
+
+/subsystem=undertow/configuration=handler/reverse-proxy=my-handler:add
+To define the outbound socket bindings for each remote host:
+
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=remote-host1/:add(host=server1.example.com, port=8009)
+
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=remote-host2/:add(host=server2.example.com, port=8009)
+To add each remote host to the reverse proxy handler:
+
+/subsystem=undertow/configuration=handler/reverse-proxy=my-handler/host=host1:add(outbound-socket-binding=remote-host1, scheme=ajp, instance-id=myroute1, path=/test)
+
+/subsystem=undertow/configuration=handler/reverse-proxy=my-handler/host=host2:add(outbound-socket-binding=remote-host2, scheme=ajp, instance-id=myroute2, path=/test)
+To add the reverse proxy location:
+
+/subsystem=undertow/server=default-server/host=default-host/location=\/test:add(handler=my-handler)
+When accessing lb.example.com:8080/app, you will now see the content proxied from server1.example.com and server2.example.com.
+
+
+## transaction
+Multiple mod_cluster Configurations
+The mod_cluster subsystem supports multiple named proxy configurations which allows to register non-default undertow servers with the reverse proxies. Moreover, this allows single application server node to register with different groups of proxy servers.
+
+The following example adds an ajp-listener, a server, and a host to the undertow server. It also adds a new mod_cluster configuration that registers the host using the advertise mechanism.
+
+/socket-binding-group=standard-sockets/socket-binding=ajp-other:add(port=8010)
+/subsystem=undertow/server=other-server:add
+/subsystem=undertow/server=other-server/ajp-listener=ajp-other:add(socket-binding=ajp-other)
+/subsystem=undertow/server=other-server/host=other-host:add(default-web-module=root-other.war)
+/subsystem=undertow/server=other-server/host=other-host
+/location=other:add(handler=welcome-content)
+/subsystem=undertow/server=other-server/host=other-host:write-attribute(name=alias,value=[localhost]))
+
+/socket-binding-group=standard-sockets/socket-binding=modcluster-other:add(multicast-address=224.0.1.106,multicast-port=23364)
+/subsystem=modcluster/proxy=other:add(advertise-socket=modcluster-other,balancer=other-balancer,connector=ajp-other)
+
+reload
+24.4.2. Enabling Ranked Session Affinity in Your Load Balancer
+You must enable ranked session affinity in your load balancer to have session affinity with multiple, ordered routes in the distributable-web subsystem. For more information about the distributable-web subsystem and the different affinity options, see The distributable-web subsystem for Distributable Web Session Configurations in the Development Guide for JBoss EAP.
+
+The default delimiter that separates the node routes is .. If you want a different value, you can configure the delimiter attribute of the affinity resource.
+
+Procedure
+
+Enable ranked session affinity for a load balancer:
+
+/subsystem=undertow/configuration=filter/mod-cluster=load-balancer/affinity=ranked:add
+Optional: Configure the delimiter attribute of the affinity resource:
+
+/subsystem=undertow/configuration=filter/mod-cluster=load-balancer/affinity=ranked:write-attribute(name=delimiter,value=':')
+24.4.3. Configure Undertow as a Static Load Balancer
+To configure a static load balancer with Undertow, you need to configure a proxy handler in the undertow subsystem. To configure a proxy handler in Undertow, you need to do the following on your JBoss EAP instance that will serve as your static load balancer:
+
+Add a reverse proxy handler
+Define the outbound socket bindings for each remote host
+Add each remote host to the reverse proxy handler
+Add the reverse proxy location
+The following example shows how to configure a JBoss EAP instance to be a static load balancer. The JBoss EAP instance is located at lb.example.com and will load balance between two additional servers: server1.example.com and server2.example.com. The load balancer will reverse-proxy to the location /app and will use the AJP protocol.
+
+To add a reverse proxy handler:
+
+/subsystem=undertow/configuration=handler/reverse-proxy=my-handler:add
+To define the outbound socket bindings for each remote host:
+
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=remote-host1/:add(host=server1.example.com, port=8009)
+
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=remote-host2/:add(host=server2.example.com, port=8009)
+To add each remote host to the reverse proxy handler:
+
+/subsystem=undertow/configuration=handler/reverse-proxy=my-handler/host=host1:add(outbound-socket-binding=remote-host1, scheme=ajp, instance-id=myroute1, path=/test)
+
+/subsystem=undertow/configuration=handler/reverse-proxy=my-handler/host=host2:add(outbound-socket-binding=remote-host2, scheme=ajp, instance-id=myroute2, path=/test)
+To add the reverse proxy location:
+
+/subsystem=undertow/server=default-server/host=default-host/location=\/test:add(handler=my-handler)
+When accessing lb.example.com:8080/app, you will now see the content proxied from server1.example.com and server2.example.com.
+
+
+
+25.3.2. Health Check Using the Management CLI Examples
+Health checks can be examined using the management CLI.
+
+The :check attribute demonstrates obtaining the current health of the server (liveness and readiness probes).
+/subsystem=microprofile-health-smallrye:check
+{
+    "outcome" => "success",
+    "result" => {
+        "outcome" => "UP",
+        "checks" => []
+    }
+}
+The :check-live attribute obtains the health data for liveness probes only.
+/subsystem=microprofile-health-smallrye:check-live
+{
+    "outcome" => "success",
+    "result" => {
+        "outcome" => "UP",
+        "checks" => []
+    }
+}
+The :check-ready attribute obtains the health data for readiness probes only.
+/subsystem=microprofile-health-smallrye:check-ready
+{
+    "outcome" => "success",
+    "result" => {
+        "outcome" => "UP",
+        "checks" => []
+    }
+}
+25.3.3. Examining the Health Check Using the Management Console
+The management console includes a check runtime operation that shows the health checks and the global outcome as boolean value.
+
+To obtain the current health status of the server from the management console:
+
+Navigate to the Runtime tab and select the server.
+In the Monitor column, click MicroProfile Health → View.
+25.3.4. Examine the Health Check Using the HTTP Endpoint
+Health check is automatically deployed to the health context on JBoss EAP.
+
+That means that in addition to being able to examine it using the management CLI, you can also obtain the current health using the HTTP endpoint. The default address for the `/health` endpoint, accessible from the management interfaces, is `http://127.0.0.1:9990/health`.
+To obtain the current health of the server using the HTTP endpoint, the following URL would be used.
+http://HOST:9990/health
+Accessing this context displays the health check in JSON format, indicating whether the server is healthy.This endpoint checks the health of both liveness and readiness probes.
+
+The /health/live endpoint checks the current health of liveness probes.
+http://HOST:9990/health/live
+The /health/ready endpoint checks the current health of readiness probes.
+http://HOST:9990/health/ready
+25.3.5. Global Status When Probes are not Defined
+The :empty-readiness-checks-status and :empty-liveness-checks-status are management attributes that specify the global status when no readiness or liveness probes are defined. These attributes allow applications to report ‘DOWN’ until their probes verify that the application is ready/live. By default, these attributes will report ‘UP’.
+
+The :empty-readiness-checks-status attribute specifies the global status for readiness probes if no readiness probes have been defined.
+/subsystem=microprofile-health-smallrye:read-attribute(name=empty-readiness-checks-status)
+{
+    "outcome" => "success",
+    "result" => expression "${env.MP_HEALTH_EMPTY_READINESS_CHECKS_STATUS:UP}"
+}
+The :empty-liveness-checks-status`attribute specifies the global status for `liveness probes if no liveness probes have been defined.
+/subsystem=microprofile-health-smallrye:read-attribute(name=empty-liveness-checks-status)
+{
+    "outcome" => "success",
+    "result" => expression "${env.MP_HEALTH_EMPTY_LIVENESS_CHECKS_STATUS:UP}"
+}
+The /health HTTP endpoint and :check operation that check both readiness and liveness probes also take into account these attributes.
+
+25.3.6. Enable Authentication for the HTTP Endpoint
+The health context can be configured to require that users be authorized to access the context.
+
+To enable authentication on this endpoint:
+
+Set the security-enabled attribute to true on the microprofile-health-smallrye subsystem.
+
+/subsystem=microprofile-health-smallrye:write-attribute(name=security-enabled,value=true)
+Reload the server for the changes to take effect.
+
+reload
+
+
+
+25.4.2. Examine Metrics Using the HTTP Endpoint
+Metrics are automatically available on the JBoss EAP management interface, with the following contexts available.
+
+/metrics/ - Contains metrics specified in the MicroProfile 3.0 specification.
+/metrics/vendor - Contains vendor-specific metrics, such as memory pools.
+/metrics/application - Contains metrics from deployed applications and subsystems that use the MicroProfile Metrics API.
+The JBoss EAP subsystem metrics are exposed in the Prometheus format.
+
+The metric names are based on subsystem and attribute names. For example, the subsystem undertow exposes a metric attribute request-count for every servlet in an application deployment. The name of this metric is jboss_undertow_request_count. The prefix jboss helps identify the metrics source.
+
+To see a list of the metrics exposed by EAP, execute the following command in the CLI:
+
+$ curl -v http://localhost:9990/metrics | grep -i type
+Example: Obtaining the request count for a JAX-RS application
+
+The following example demonstrates how to find the number of requests made to a web service deployed on JBoss EAP. The example uses the helloworld-rs quickstart as the web service. Download the quickstart from: jboss-eap-quickstarts.
+
+To examine the request-count metric in the helloworld-rs quickstart:
+
+Enable statistics for the undertow subsystem:
+
+Start the standalone server with statistics enabled:
+
+$ ./standalone.sh -Dwildfly.statistics-enabled=true
+For an already running server, enable the statistics for the undertow subsystem:
+
+/subsystem=undertow/:write-attribute(name=statistics-enabled,value=true)
+Deploy the helloworld-rs quickstart:
+
+In the root directory of the quickstart, deploy the web application using Maven:
+
+$ mvn clean install wildfly:deploy
+Query the http endpoint in the CLI using the curl command and filter for request_count:
+
+$ curl -v http://localhost:9990/metrics |  grep request_count
+Output:
+
+jboss_undertow_request_count_total{server="default-server",http_listener="default",} 0.0
+The attribute value returned is 0.0.
+
+Access the quickstart, located at http://localhost:8080/helloworld-rs/, in a web browser and click any of the links.
+Query the http endpoint again from the CLI:
+
+$ curl -v http://localhost:9990/metrics |  grep request_count
+Output:
+
+jboss_undertow_request_count_total{server="default-server",http_listener="default",} 1.0
+The value is updated to 1.0.
+
+You can verify that the request count is updated correctly by repeating the last two steps.
+

@@ -1,0 +1,111 @@
+user@mendota$ lxc image copy ubuntu:18.04/amd64 local: --copy-aliases
+user@mendota$ lxc profile create awx
+user@mendota$ lxc profile edit awx <awx.yml
+user@mendota$ lxc launch 18.04/amd64 awx01 -p default -p awx -v ;\
+   sleep 10 ;\
+   lxc exec monona:awx01 tail -100f /var/log/cloud-init-output.log
+
+
+   For extra security you can switch the guest back to unprivileged mode.
+
+user@mendota$ lxc exec awx01 -- shutdown -h now
+user@mendota$ lxc config set awx security.privileged false
+user@mendota$ lxc start awx01
+Since these are containers, you can access the nested namespace pids from the host as well.
+
+user@monona ~ 0 $ lxc list local:awx01 --columns=ns4p
+
+
+yaml2json.py
+#!/usr/bin/python
+import sys, json, yaml
+
+try:
+    if sys.argv[1] == "-":
+            y=yaml.load(sys.stdin.read())
+    else:
+        with open(sys.argv[1]) as i:
+            y=yaml.load(i.read())
+except:
+    print "Usage: \n\t%s [file.yml|-] {key} [key} ...\n"
+    print "Dumps yaml content as beuatified json\n"
+    print "if argv[1] is -, reads yaml from stdin\n"
+    print "if optional key is given, key is extracted and printed to stdout\n"
+else:
+    i=2
+    while len(sys.argv) > i:
+        y=y.get(sys.argv[i])
+        i += 1
+    if isinstance(y,(str,unicode)) is False and isinstance(y,(list,dict)) is True:
+        print json.dumps(y,indent=2)
+    else:
+        print y
+
+
+
+
+user@monona:/tmp$ yaml2json.py /tmp/awx.yaml config user.user-data | yaml2json.py -
+{
+  "users": [
+    {
+      "ssh-authorized-keys": [
+        "ssh-rsa ... me@booger",
+        "ssh-rsa ... me@mendota"
+      ],
+      "shell": "/bin/bash",
+      "name": "ubuntu",
+      "groups": [
+        "adm",
+        "audio",
+        "cdrom",
+        "dialout",
+        "dip",
+        "floppy",
+        "netdev",
+        "plugdev",
+        "sudo",
+        "video",
+        "docker"
+      ],
+      "sudo": [
+        "ALL=(ALL) NOPASSWD:ALL"
+      ],
+      "lock_passwd": true
+    }
+  ],
+  "output": {
+    "all": "| tee -a /var/log/cloud-init-output.log"
+  },
+  "package_update": true,
+  "packages": [
+    "docker.io",
+    "build-essential",
+    "cloud-utils",
+    "vim",
+    "ansible",
+    "python-pip",
+    "nodejs",
+    "npm",
+    "git"
+  ],
+  "package_upgrade": true,
+  "runcmd": [
+    "set -xe",
+    "pip install docker-py",
+    "env",
+    "mkdir -p /awx/src",
+    "mkdir /awx/ca-trust",
+    "cat > '/awx/ca-trust/cacert.pem' << 'EOF'",
+    "-----BEGIN CERTIFICATE-----\nMIID9TCCAl2gAwIBAgIMWw23QDQvMTzGywMA0GCSqGSIb3DQEBCwUAMBYxFDAS\nBgNVBAMTC2RldmVuZG9yLmlvMB4XDTE4MDUyOTIwMjUzNloXDTIxMDIyMTIwMjUz\nNlowFjEUMBIGA1UEAxMLZGV2ZW5kb3IuaW8wggGiMA0GCSqGSIb3DQEBAQUAA4IB\njwAwggGKAoIBgQDlcLd4os+jXIu8w6mRDI4Tv1XHiFBfAgGCHXiCWgrZZ2NK9hVR\nYsqQ6yh2phJN9TQRU5xCVjiojoivVTfOKbIbYcWsBSam3PSoMYgfejvREgiXT2PP\nW9WyteTSRgDiBYua9PHYmYXMniqhvJ4rP2m9MATuso0yuDs+EXAo0U6wCSLoLnsA\ndpnBiL71xF5kg7/V5sDhgaGnQD21r38oRqJ4UV2BfvdavLNGOtcaCfS1NZpngEHv\nN3FoWkMoA4Vha01K20PY79uWLHlDR3bHAKOs8TKCcH+RvIySM8Vi6/nVSbE6vaz+\nfvNhtNZEVaBRi/Wjt6MUD4JYY8JLi3UiQv1EPNFZi5jaVmO168k+7Au0s93jFZ3n\nr5Je7L7Bb6jQntHECcicTpBpVI7+M/MdlKq88VyUBNWMpVXp2Ieq81Wg2h6MlhBT\nTeH9veHY/B/2apzl08hhqbxb+Or/4LeHEL69fA69AuLfGkGKHLCsUh/71RXjHdfc\n0OE2OEgFEfGz0cMCAwEAAaNDMEEwDwYDVR0TAQH/BAUwAwEB/zAPBgNVHQ8BAf8E\nBQMDBwQAMB0GA1UdDgQWBBTK45tHZnjDCvEipkkIHnnZled98zANBgkqhkiG9w0B\nAQsFAAOCAYEA4GtL+LZ79OjxY0KW05e0sMmdDjMQHVhdfyRe0R6d3A1QeY1gsD6E\nAQ7zOvllE8dcvTeZRKuJ7nK4PECNlBmlD8P/WBK95gHoQh8Ljbr+tWeFAaGTFAAK\nqcldcNM0GHB2TUYPZzpJ/wIv2ry6SUOswffkqqBoWbs//Ho8lPV3YGOAtBcTvJYu\nxmzPioxGPA/9vlC8pcown0KJub8oCVlFq31GbINSe25/ZiLcAp1S/msblzskAbgC\n78FruivGdjN8aWMKY2xzZrrPBYy82hoy4BfHIa8ps61/EGRt4Da73yS8dDDqNz6n\nTEV4woVUxYWUnYmIv0Ghh0IWZAWpAZeuGy6TiNbqPisadscXah+31QV5HbLaits+\nJF2GfiGVkiDJ5qKOH1QYnIbphj89Fr0I4dMa18SpQT1LRk7FXPXxhRJ7vKrLpLua\n9dYm0J/WrpilTBt7o5De1EoElt2oS1nkziFRdQMmcXwVg/Zxk73fRlafudjJoC72\nbJDHwXBjx0KC\n-----END CERTIFICATE-----\nEOF",
+    "chmod 444 '/awx/ca-trust/cacert.pem'",
+    "chmod 555 '/awx/ca-trust'",
+    "git clone 'https://github.com/ansible/awx.git' '/awx/src/awx'",
+    "git clone 'https://github.com/ansible/awx-logos.git' '/awx/src/awx-logos'",
+    "systemctl start docker",
+    "systemctl enable docker",
+    "sed -i 's/postgres_data_dir/# postgres_data_dir/' '/awx/src/awx/installer/inventory'",
+    "cat >> '/awx/src/awx/installer/inventory' << 'EOF'",
+    "postgres_data_dir=/awx/db\nawx_official=true\nproject_data_dir=/awx/projects\nca_trust_dir=/awx/ca-trust\n\nEOF",
+    "env HOME=/root USER=root ansible-playbook -vvi /awx/src/awx/installer/inventory /awx/src/awx/installer/install.yml"
+  ]
+}

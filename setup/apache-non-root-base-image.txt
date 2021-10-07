@@ -1,0 +1,40 @@
+FROM oraclelinux:7-slim
+RUN   yum -y --setopt=tsflags=nodocs update && \
+      yum -y --setopt=tsflags=nodocs install httpd && \
+      yum -y --setopt=tsflags=nodocs install mod_ssl && \
+      yum clean all
+EXPOSE 80
+RUN ln -sf   /proc/self/fd/1 /var/log/httpd/error_log && \
+         ln -sf   /proc/self/fd/1 /var/log/httpd/access_log
+RUN groupadd www-data && useradd -g www-data www-data
+RUN chmod 755 -R /etc/pki \
+&& chown -hR www-data:www-data /etc/httpd/ \
+&& chown -hR www-data:www-data /run/httpd/ \
+&& chown -hR www-data:www-data /var/www/ \
+&& chown -hR www-data:www-data /var/log/httpd/
+
+#setcap to bind to privileged ports as non-root
+RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/httpd &&  getcap /usr/sbin/httpd
+ADD run-httpd.sh /run-httpd.sh
+RUN chown www-data:www-data /run-httpd.sh
+USER 1000
+CMD ["/run-httpd.sh"]
+
+run-httpd.sh :
+#!/bin/bash
+exec /usr/sbin/apachectl -DFOREGROUND
+tail -f  /var/log/httpd/access_log
+
+
+
+${HOME}/Documents/github/clone-branch.bash      
+
+
+
+docker pull httpd:alpine
+docker run -dit --hostname orarepo --name orarepo \
+-p 8080:80 \
+-v /Data/vm/docker/volumes/orarepo:/usr/local/apache2/htdocs/ \
+httpd:alpine
+
+

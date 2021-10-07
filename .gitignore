@@ -1,0 +1,6 @@
+/vertx-tutorial/1-vertx/target/
+/vertx-tutorial/1-vertx/*.iml
+.idea
+*.iml
+/groovy-ex-jar/target/
+.gradle
