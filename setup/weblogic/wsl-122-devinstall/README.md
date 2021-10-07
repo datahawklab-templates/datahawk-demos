@@ -10,7 +10,7 @@
 ## create an ORACLE_HOME/WEBLOGIC_HOME
 
 ```bash
-mkdir -p /home/schakrabarty/bin/wls1221
+mkdir -p /home/slastname/bin/wls1221
 ```
 
 ## install weblogic
@@ -18,9 +18,9 @@ mkdir -p /home/schakrabarty/bin/wls1221
 * set JAVA_HOME,JAR_PATH and ORACLE_HOME
 
 ```bash
-export JAVA_HOME=/home/schakrabarty/bin/jdk1.8.0_271 ; \
-export JAR_PATH=/home/schakrabarty/bin
-export ORACLE_HOME=/home/schakrabarty/bin/wls1221
+export JAVA_HOME=/home/slastname/bin/jdk1.8.0_271 ; \
+export JAR_PATH=/home/slastname/bin
+export ORACLE_HOME=/home/slastname/bin/wls1221
 export PATH=${JAVA_HOME}/bin:$PATH ; \
 java -version && \
 java -jar ${JAR_PATH}/fmw_12.2.1.4.0_wls_quick.jar  ORACLE_HOME=${ORACLE_HOME}
@@ -40,8 +40,8 @@ java -jar ${JAR_PATH}/fmw_12.2.1.4.0_wls_quick.jar  ORACLE_HOME=${ORACLE_HOME}
   check path.domain.config in myDomain.properties for the location DOMAIN_PATH
 
 ```bash
-export JAVA_HOME=/home/schakrabarty/bin/jdk1.8.0_271 ; \
-export DOMAIN_PATH=/home/schakrabarty/swapan-github/wlsdomains/domains/swapan-domain
+export JAVA_HOME=/home/slastname/bin/jdk1.8.0_271 ; \
+export DOMAIN_PATH=/home/slastname/name-github/wlsdomains/domains/name-domain
 export PATH=${JAVA_HOME}/bin:$PATH ; \
 java -version &&
 cd $DOMAIN_PATH && \

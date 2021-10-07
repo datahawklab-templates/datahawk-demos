@@ -49,8 +49,8 @@ sudo apt-get update -qq && \
 sudo apt-get -qq --yes install podman
 
 
-sudo useradd -s /bin/bash -d /home/swapanc/ -m -G sudo swapanc
-passwd swapanc
+sudo useradd -s /bin/bash -d /home/namec/ -m -G sudo namec
+passwd namec
 ssh-keygen -t rsa -b 4096 -C "your_email@domain.com"
 
 

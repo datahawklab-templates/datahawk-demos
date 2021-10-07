@@ -40,7 +40,7 @@ Examples:
   Downloads weblogic 12c (oradown downloaded via wget):
     wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh  | \
         bash -s -- --cookie=accept-weblogicserver-server \
-            --username=swapan.chakrabarty@company.com --password=pass \
+            --username=name.lastname@company.com --password=pass \
            https://download.oracle.com/otn/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.tar.gz
 
     Downloads weblogic 12c (oradown downloaded via curl):

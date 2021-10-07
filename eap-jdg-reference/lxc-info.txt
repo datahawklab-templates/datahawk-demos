@@ -22,7 +22,7 @@ lxc launch ol7-xe18c mortyc-1
 # lxc config device add mortyc-137 oralistener proxy connect=tcp:127.0.0.1:1539 listen=tcp:0.0.0.0:1539
 
 cd ~/.ssh && \
-scp swapanc@swapanc-ThinkCentre-M93p:/~.ssh/* .
+scp namec@namec-ThinkCentre-M93p:/~.ssh/* .
 
 lxc launch images:oracle/8/cloud orcl1
 

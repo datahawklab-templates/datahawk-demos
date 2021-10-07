@@ -1,8 +1,8 @@
 #!/usr/bin/sh
 
-export MW_HOME=/home/schakrabarty/bin/wls1221
-export JAVA_HOME=/home/schakrabarty/bin/jdk1.8.0_271
-export SCRIPT_HOME=/home/schakrabarty/swapan-github/wsl-122-devinstall
+export MW_HOME=/home/slastname/bin/wls1221
+export JAVA_HOME=/home/slastname/bin/jdk1.8.0_271
+export SCRIPT_HOME=/home/slastname/name-github/wsl-122-devinstall
 export WLS_HOME=$MW_HOME/wlserver
 export WL_HOME=$WLS_HOME
 export PATH=${JAVA_HOME}/bin:$PATH

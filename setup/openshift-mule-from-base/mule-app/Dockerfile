@@ -1,6 +1,5 @@
 FROM base-mule-image
 
-MAINTAINER marcos.caldeira@gmail.com
 
 
 # Copy configuration files

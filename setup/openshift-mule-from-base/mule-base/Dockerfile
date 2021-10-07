@@ -1,6 +1,4 @@
-FROM registry.redhat.io/openjdk/openjdk-8-rhel8
-
-MAINTAINER marcos.caldeira@gmail.com
+FROM registry.redhat.io/openjdk/openjdk-8-rhel
 
 # Install some requerid packges in order to /opt/bin/mule works properly
 USER 0

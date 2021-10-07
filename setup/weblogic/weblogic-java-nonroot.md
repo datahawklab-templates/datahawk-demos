@@ -3,18 +3,18 @@
 
 ## create the required directories
 ```bash=
-mkdir -p /home/swapanc/code/weblogic-testing/bin && \
-mkdir -p /home/swapanc/code/weblogic-testing/app/wls1411-swapan && \
+mkdir -p /home/namec/code/weblogic-testing/bin && \
+mkdir -p /home/namec/code/weblogic-testing/app/wls1411-name && \
 ```
 ## delete everything in one shot
 ```bash=
-export WEBLOGIC_PROJECT_HOME=/home/swapanc/IdeaProjects/app/wls1411-swapan ;\
+export WEBLOGIC_PROJECT_HOME=/home/namec/IdeaProjects/app/wls1411-name ;\
 ([[ -e $WEBLOGIC_PROJECT_HOME ]] && (rm -rf $WEBLOGIC_PROJECT_HOME || echo "error deleting ${WEBLOGIC_PROJECT_HOME}")) || "$WEBLOGIC_PROJECT_HOME doesnt exist"
 ```
 
 ## install non-root oracle JDK
 ```bash=
-export WEBLOGIC_PROJECT_HOME=/home/swapanc/code/weblogic-testing/app/wls1411-swapan ;\
+export WEBLOGIC_PROJECT_HOME=/home/namec/code/weblogic-testing/app/wls1411-name ;\
 export JDK_INSTALL_HOME=${WEBLOGIC_PROJECT_HOME}/jdk ;\
 export JDK_ARCHIVE=jdk-8u281-linux-x64.tar.gz ;\
 export JDK=jdk1.8.0_281 ;\
@@ -23,7 +23,7 @@ export PATH=${JAVA_HOME}/bin:$PATH ;\
 ( [[ ! -e $WEBLOGIC_PROJECT_HOME ]] && (( mkdir -p $JDK_INSTALL_HOME) || ( echo "could not create $WEBLOGIC_PROJECT_HOME" && exit 1 ))) || ( echo "$WEBLOGIC_PROJECT_HOME already exists" && exit 1 )
 echo "installing java ${JAVA_HOME} in ${JDK_INSTALL_HOME}" ;\
 cd $JDK_INSTALL_HOME && \
-wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh  | bash -s -- --cookie=accept-weblogicserver-server --username=swapan.chakrabarty@com.com--password=pass http://download.oracle.com/otn/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.tar.gz && \
+wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh  | bash -s -- --cookie=accept-weblogicserver-server --username=name.lastname@com.com--password=pass http://download.oracle.com/otn/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.tar.gz && \
 tar xzvf $JDK_ARCHIVE && \
 java -version && \
 echo "success installing java to ${JAVA_HOME}"
@@ -62,7 +62,7 @@ tar xzvf ${TAR_GZ_PATH} -C
     wget --no-cookies --header "Cookie: s_nr=1359635827494; s_cc=true; gpw_e24=http%3A%2F%2Fwww.oracle.com%2Ftechnetwork%2Fjava%2Fjavase%2Fdownloads%2Fjdk6downloads-1902814.html; s_sq=%5B%5BB%5D%5D; gpv_p24=no%20value" http://download.oracle.com/otn-pub/java/jdk/6u41-b02/jdk-6u41-linux-x64.bin
 
 
-echo "inventory_loc=/home/swapanc/code/weblogic-testing" > ${WEBLOGIC_ORACLE_BASE}/oraInst.loc
+echo "inventory_loc=/home/namec/code/weblogic-testing" > ${WEBLOGIC_ORACLE_BASE}/oraInst.loc
 
 export ORACLE_HOME==${APP_HOME}/fmw-wls-slim-12.2.1.4.0
 export JAVA_HOME=${JAVA_BASE}/jdk1.8.0_221
@@ -72,12 +72,12 @@ java -jar fmw_12.2.1.4.0_wls_quick_slim.jar ORACLE_HOME=$ORACLE_HOME -invPtrLoc 
 
 
 ```bash=
-export INSTALL_HOME=/home/swapanc/IdeaProjects/bin ;\
+export INSTALL_HOME=/home/namec/IdeaProjects/bin ;\
 export JDK=jdk1.8.0_281 ;\
 export JAVA_HOME=${INSTALL_HOME}/${JDK} ;\
 export PATH=${JAVA_HOME}/bin:${PATH} ;\
-export PROJ_HOME=/home/swapanc/IdeaProjects/app ;\
-export PROJECT=wls1411-swapan ;\
+export PROJ_HOME=/home/namec/IdeaProjects/app ;\
+export PROJECT=wls1411-name ;\
 export JAR=fmw_14.1.1.0.0_wls_lite_quick_generic.jar ;\
 export OCL_HOME=${PROJ_HOME}/${PROJECT} ;\
 java -version && \
@@ -87,7 +87,7 @@ echo "successfuly created Weblogic home: ${OCL_HOME}"
 
 ## prep non-root weblogic
 ```bash=
-export WEBLOGIC_PROJECT_HOME=/home/swapanc/IdeaProjects/app/wls1411-swapan
+export WEBLOGIC_PROJECT_HOME=/home/namec/IdeaProjects/app/wls1411-name
 export JAR_DOWNLOAD_HOME=${WEBLOGIC_PROJECT_HOME}/weblogic_jar ;\
 export WEBLOGIC_ARCHIVE=fmw_14.1.1.0.0_wls_lite_quick_Disk1_1of1.zip ;\
 export jar=fmw_14.1.1.0.0_wls_lite_quick_generic.jar ;\
@@ -98,18 +98,18 @@ wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-
 && (( mkdir -p $JAR_DOWNLOAD_HOME) || echo "could not create $JAR_DOWNLOAD_HOME" && exit 1 )) || ( echo "could not create $WEBLOGIC_PROJECT_HOME" && exit 1 ))) ||
 echo "unarchiving ${ARCHIVE} to ${AR_DOWNLOAD_HOME" ;\
 cd $INSTALL_HOME && \
-wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh | bash -s -- --cookie=accept-weblogicserver-server --username=swapan.chakrabarty@com.com --password=pass https://download.oracle.com/otn/nt/middleware/14c/14110/fmw_14.1.1.0.0_wls_lite_quick_Disk1_1of1.zip && \
+wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh | bash -s -- --cookie=accept-weblogicserver-server --username=name.lastname@com.com --password=pass https://download.oracle.com/otn/nt/middleware/14c/14110/fmw_14.1.1.0.0_wls_lite_quick_Disk1_1of1.zip && \
 unzip $ARCHIVE && \
 echo "successfuly unzipped"
 ```
 ## create non-root weblogic oracle_home for developers
 ```bash=
-export INSTALL_HOME=/home/swapanc/IdeaProjects/bin ;\
+export INSTALL_HOME=/home/namec/IdeaProjects/bin ;\
 export JDK=jdk1.8.0_281 ;\
 export JAVA_HOME=${INSTALL_HOME}/${JDK} ;\
 export PATH=${JAVA_HOME}/bin:${PATH} ;\
-export PROJ_HOME=/home/swapanc/IdeaProjects/app ;\
-export PROJECT=wls1411-swapan ;\
+export PROJ_HOME=/home/namec/IdeaProjects/app ;\
+export PROJECT=wls1411-name ;\
 export JAR=fmw_14.1.1.0.0_wls_lite_quick_generic.jar ;\
 export OCL_HOME=${PROJ_HOME}/${PROJECT} ;\
 java -version && \
@@ -129,11 +129,11 @@ export JAVA_HOME=$2
 ## CreateDomain.sh
 
 ```bash=
-cat >/home/swapanc/scripts/wls1411-swapan/createDomain.sh <<<'#!/usr/bin/bash
+cat >/home/namec/scripts/wls1411-name/createDomain.sh <<<'#!/usr/bin/bash
 
-export MW_HOME=/home/swapanc/IdeaProjects/app/wls1411-swapan
-export JAVA_HOME=/home/swapanc/IdeaProjects/bin/jdk1.8.0_281
-export SCRIPT_HOME=/home/swapanc/scripts/wls1411-swapan
+export MW_HOME=/home/namec/IdeaProjects/app/wls1411-name
+export JAVA_HOME=/home/namec/IdeaProjects/bin/jdk1.8.0_281
+export SCRIPT_HOME=/home/namec/scripts/wls1411-name
 export WLS_HOME=$MW_HOME/wlserver
 export WL_HOME=$WLS_HOME
 export PATH=${JAVA_HOME}/bin:$PATH
@@ -145,15 +145,15 @@ java weblogic.WLST CreateDomain.py -p myDomain.properties
 ### myDomain.properties
 ```bash=
 
-cat >/home/swapanc/scripts/wls1411-swapan/myDomain.properties <<<"\
+cat >/home/namec/scripts/wls1411-name/myDomain.properties <<<"\
 # Paths
-path.middleware=/home/swapanc/IdeaProjects/app/wls1411-swapan
-path.wls=/home/swapanc/IdeaProjects/app/wls1411-swapan/wlserver
-path.domain.config=/home/swapanc/IdeaProjects/app/swapan-wlsdomains
-path.app.config=/home/swapanc/IdeaProjects/app/swapan-wlsapplications
+path.middleware=/home/namec/IdeaProjects/app/wls1411-name
+path.wls=/home/namec/IdeaProjects/app/wls1411-name/wlserver
+path.domain.config=/home/namec/IdeaProjects/app/name-wlsdomains
+path.app.config=/home/namec/IdeaProjects/app/name-wlsapplications
 
 # Credentials
-domain.name=swapan-domain
+domain.name=name-domain
 domain.username=weblogic
 domain.password=Password1
 
@@ -161,13 +161,13 @@ domain.password=Password1
 domain.admin.port=700
 domain.admin.address=acer.test.com
 domain.admin.port.ssl=7501# Paths
-path.middleware=/home/swapanc/IdeaProjects/app/wls1411-swapan
-path.wls=/home/swapanc/IdeaProjects/app/wls1411-swapan/wlserver
-path.domain.config=/home/swapanc/IdeaProjects/app/swapan-wlsdomains
-path.app.config=/home/swapanc/IdeaProjects/app/swapan-wlsapplications
+path.middleware=/home/namec/IdeaProjects/app/wls1411-name
+path.wls=/home/namec/IdeaProjects/app/wls1411-name/wlserver
+path.domain.config=/home/namec/IdeaProjects/app/name-wlsdomains
+path.app.config=/home/namec/IdeaProjects/app/name-wlsapplications
 
 # Credentials
-domain.name=swapan-domain
+domain.name=name-domain
 domain.username=weblogic
 domain.password=Password1
 
@@ -178,19 +178,19 @@ domain.admin.port.ssl=7501
 EOF
 "
 
-chmod u+x /home/swapanc/scripts/wls1411-swapan/createDomain.sh && \
-cd /home/swapanc/scripts/wls1411-swapan && \
+chmod u+x /home/namec/scripts/wls1411-name/createDomain.sh && \
+cd /home/namec/scripts/wls1411-name && \
 ./createDomain.sh
 ```
 
 ## Start weblogic domain
 ```bash=
-export INSTALL_HOME=/home/swapanc/IdeaProjects/bin ;\
+export INSTALL_HOME=/home/namec/IdeaProjects/bin ;\
 export JDK=jdk1.8.0_281 ;\
 export JAVA_HOME=${INSTALL_HOME}/${JDK} ;\
 export PATH=${JAVA_HOME}/bin:${PATH} ;\
 java -version &&
-cd /home/swapanc/IdeaProjects/app/swapan-wlsdomains && \
+cd /home/namec/IdeaProjects/app/name-wlsdomains && \
 ./startWebLogic.sh
 nohup ./startWebLogic.sh > /dev/null 2>&1 &
 ```
@@ -200,10 +200,10 @@ nohup ./startWebLogic.sh > /dev/null 2>&1 &
 **make sure to set DOMAIN_PATH**
 
 ```bash=
-rm -rf /home/schakrabarty/wlsdomains/domains/swapan-domain && \
-cd /home/schakrabarty/Documents/work/code-work/weblogic-openshift/wlst && \
+rm -rf /home/slastname/wlsdomains/domains/name-domain && \
+cd /home/slastname/Documents/work/code-work/weblogic-openshift/wlst && \
 ./CreateDomain.sh && \
-cd /home/swapanc/IdeaProjects/app/swapan-wlsdomains/swapan-domain &&\
+cd /home/namec/IdeaProjects/app/name-wlsdomains/name-domain &&\
 ./startWebLogic.sh
 ```
 
@@ -248,10 +248,10 @@ EOF
 ## archive
 ## download binaries
 ```bash
-mkdir -p /home/schakrabarty/IdeaProjects/bin &&
-cd /home/schakrabarty/IdeaProjects/bin &&
-wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh  | bash -s -- --cookie=accept-weblogicserver-server --username=swapan.chakrabarty@com.com --password=pass http://download.oracle.com/otn/nt/middleware/12c/122140/fmw_12.2.1.4.0_wls_lite_Disk1_1of1.zip &&
-wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh  | bash -s -- --cookie=accept-weblogicserver-server --username=swapan.chakrabarty@com.com --password=pass http://download.oracle.com/otn/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.tar.gz
+mkdir -p /home/slastname/IdeaProjects/bin &&
+cd /home/slastname/IdeaProjects/bin &&
+wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh  | bash -s -- --cookie=accept-weblogicserver-server --username=name.lastname@com.com --password=pass http://download.oracle.com/otn/nt/middleware/12c/122140/fmw_12.2.1.4.0_wls_lite_Disk1_1of1.zip &&
+wget -O - -q https://raw.githubusercontent.com/typekpb/oradown/master/oradown.sh  | bash -s -- --cookie=accept-weblogicserver-server --username=name.lastname@com.com --password=pass http://download.oracle.com/otn/java/jdk/8u281-b09/89d678f2be164786b292527658ca1605/jdk-8u281-linux-x64.tar.gz
 ```
 https://www.oracle.com/webapps/redirect/signon?nexturl=
 
@@ -274,7 +274,6 @@ java -jar /localpath/fmw_12.2.1.4.0_wls_quick_Disk1_1of1/fmw_12.2.1.4.0_wls_quic
 
 FROM registry.access.redhat.com/rhel7.1
 
-MAINTAINER Gidi Kern <gidikern@gmail.com>
 
 RUN curl -b oraclelicense=accept-securebackup-cookie -O -L http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jre-8u60-linux-x64.rpm && rpm -ivh jre-8u60-linux-x64.rpm && rm -rf jre-8u60-linux-x64.rpm
 
